@@ -1,7 +1,8 @@
 # eslint-config-checker
 
-Checks [ESLint](https://eslint.org/docs/rules/) configuration file to check outdated, redundant or to give
-suggestions on rules.
+Checks [ESLint](https://eslint.org/docs/rules/) configuration file for outdated or redundant
+rules, or to give suggestions on parser options, environments, extending, plugins or optional
+arguments for rules.
 
 ### Current Features
 
@@ -10,6 +11,7 @@ suggestions on rules.
 
 ### Upcoming Features
 
+- Error handling
 - Check other tables
 - Check parser options, env, extends and plugins objects
 - Check if eslint:recommended options are explicitly in rules
