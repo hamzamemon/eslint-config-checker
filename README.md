@@ -8,13 +8,14 @@ arguments for rules.
 
 - Checks deprecated rules
 - Checks removed rules
+- Checks ECMAScript 6 rules
+- Check if eslint:recommended options are explicitly in rules for ECMAScript 6
 
 ### Upcoming Features
 
 - Error handling
 - Check other tables
 - Check parser options, env, extends and plugins objects
-- Check if eslint:recommended options are explicitly in rules
 - Check if rule's value is the default
 - Add other file types
 - Print out additional optional options
