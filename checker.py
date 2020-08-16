@@ -30,11 +30,31 @@ def parse(data, soup):
     plugins = data["plugins"]
     rules = data["rules"]
 
-    # Get deprecated table's contents
+    # Get "Possible Errors" table's contents
+    possible_errors_table = soup.find("h2", text="Possible Errors").find_next("table")
+    possible_errors_dict = loop_through_4_table(possible_errors_table)
+
+    # Get "Best Practices" table's contents
+    best_practices_table = soup.find("h2", text="Best Practices").find_next("table")
+    best_practices_dict = loop_through_4_table(best_practices_table)
+
+    # Get "Strict Mode" table's contents
+    strict_mode_table = soup.find("h2", text="Strict Mode").find_next("table")
+    strict_mode_dict = loop_through_4_table(strict_mode_table)
+
+    # Get "Variables" table's contents
+    variables_table = soup.find("h2", text="Variables").find_next("table")
+    variables_dict = loop_through_4_table(variables_table)
+
+    # Get "Stylistic Issues" table's contents
+    stylistic_issues_table = soup.find("h2", text="Stylistic Issues").find_next("table")
+    stylistic_issues_dict = loop_through_4_table(stylistic_issues_table)
+
+    # Get "Deprecated" table's contents
     deprecated_table = soup.find("h2", text="Deprecated").find_next("table")
     deprecated_dict = loop_through_2_table(deprecated_table)
 
-    # Get removed table's contents
+    # Get "Removed" table's contents
     removed_table = soup.find("h2", text="Removed").find_next("table")
     removed_dict = loop_through_2_table(removed_table)
 
