@@ -30,46 +30,90 @@ def parse(data, soup):
     plugins = data["plugins"]
     rules = data["rules"]
 
-    # Get "Possible Errors" table's contents
-    possible_errors_table = soup.find("h2", text="Possible Errors").find_next("table")
-    possible_errors_dict = loop_through_4_table(possible_errors_table)
+    dictionaries = {}
 
-    # Get "Best Practices" table's contents
-    best_practices_table = soup.find("h2", text="Best Practices").find_next("table")
-    best_practices_dict = loop_through_4_table(best_practices_table)
+    # Search for all tables and loop
+    tables = soup.find_all("table")
+    for table in tables:
 
-    # Get "Strict Mode" table's contents
-    strict_mode_table = soup.find("h2", text="Strict Mode").find_next("table")
-    strict_mode_dict = loop_through_4_table(strict_mode_table)
+        print(table)
+        # Get the associated header for said table
+        header = table.find_previous_sibling("h2")
+        if not header:
+            # If header isn't a sibling, move up to parent (happened for deprecated and removed)
+            header = table.parent.find_previous_sibling("h2")
 
-    # Get "Variables" table's contents
-    variables_table = soup.find("h2", text="Variables").find_next("table")
-    variables_dict = loop_through_4_table(variables_table)
+            # If header still does not exist, print message and move on.
+            if not header:
+                print("Header not found.")
+                continue
+        header = header.text
 
-    # Get "Stylistic Issues" table's contents
-    stylistic_issues_table = soup.find("h2", text="Stylistic Issues").find_next("table")
-    stylistic_issues_dict = loop_through_4_table(stylistic_issues_table)
+        # Special cases
+        # If we're looking at the ECMA table and "es6" is not in environment, skip
+        if header == "ECMAScript 6":
+            if not ("es6" in env and env["es6"]):
+                continue
 
-    # Get "Deprecated" table's contents
-    deprecated_table = soup.find("h2", text="Deprecated").find_next("table")
-    deprecated_dict = loop_through_2_table(deprecated_table)
+        # Loop through table and add to dictionary
+        dictionary = loop_through_table(table)
+        dictionaries[header] = dictionary
 
-    # Get "Removed" table's contents
-    removed_table = soup.find("h2", text="Removed").find_next("table")
-    removed_dict = loop_through_2_table(removed_table)
-
-    # Output options that can be changed
+    # Output outdated options that can be changed
+    deprecated_dict = dictionaries["Deprecated"]
     compare_rules_to_deprecated_and_removed(rules, deprecated_dict)
+
+    removed_dict = dictionaries["Removed"]
     compare_rules_to_deprecated_and_removed(rules, removed_dict)
 
     # Get ECMAScript 6 if it's set in the env object
     if "es6" in env and env["es6"]:
         ecmaScript_table = soup.find("h2", text="ECMAScript 6").find_next("table")
-        ecmaScript_dict = loop_through_4_table(ecmaScript_table)
 
     # Check if we should check if recommended rules are in the config
     if "eslint:recommended" in extends:
         compare_rules_to_recommended(rules)
+
+
+# Loop through and process ables
+def loop_through_table(table):
+    dictionary = {}
+
+    # Loop through all rows in the tables
+    rows = table.find_all("tr")
+    for tr in rows:
+        cols = tr.find_all("td")
+        if len(cols) == 4:
+            # Tables that are not deprecated and removed
+            recommended = cols[0]
+            fix = cols[1]
+            rule = cols[2].text
+            description = cols[3].text
+
+            # Verify recommended value exists
+            span_recommended = recommended.find("span")
+            if span_recommended and span_recommended.get("title") == "recommended":
+                recommended_set.add(rule)
+
+            # Verify fixable value exists
+            span_fix = fix.find("span")
+            if span_fix and span_fix.get("title") == "fixable":
+                fix_set.add(rule)
+
+            # Add to dictionary
+            dictionary[rule] = description
+        elif len(cols) == 2:
+            # Deprecated and removed tables
+            rule = cols[0].text
+            replaced_by = cols[1].text
+
+            # Update default value
+            if replaced_by == "(no replacement)":
+                replaced_by = ""
+
+            # Add to dictionary
+            dictionary[rule] = replaced_by
+    return dictionary
 
 
 # See if any of the user's rules are in the deprecated or removed tables
@@ -99,60 +143,6 @@ def compare_rules_to_recommended(rules):
         # If rule is in user's rules
         if key in rules:
             print(key, 'is already part of "eslint:recommended".')
-
-
-# Loop through and process active tables
-def loop_through_4_table(table):
-    dictionary = {}
-
-    # Loop through all rows in the tables
-    rows = table.find_all("tr")
-    for tr in rows:
-        cols = tr.find_all("td")
-
-        # Table rows should only have two columns: the rule and the replaced by rule
-        if len(cols) == 4:
-            recommended = cols[0]
-            fix = cols[1]
-            rule = cols[2].text
-            description = cols[3].text
-
-            # Verify recommended value exists
-            span_recommended = recommended.find("span")
-            if span_recommended and span_recommended.get("title") == "recommended":
-                recommended_set.add(rule)
-
-            # Verify fixable value exists
-            span_fix = fix.find("span")
-            if span_fix and span_fix.get("title") == "fixable":
-                fix_set.add(rule)
-
-            # Add to dictionary
-            dictionary[rule] = description
-    return dictionary
-
-
-# Loop through and process deprecated and removed tables
-def loop_through_2_table(table):
-    dictionary = {}
-
-    # Loop through all rows in the tables
-    rows = table.find_all("tr")
-    for tr in rows:
-        cols = tr.find_all("td")
-
-        # Table rows should only have two columns: the rule and the replaced by rule
-        if len(cols) == 2:
-            rule = cols[0].text
-            replaced_by = cols[1].text
-
-            # Update default value
-            if replaced_by == "(no replacement)":
-                replaced_by = ""
-
-            # Add to dictionary
-            dictionary[rule] = replaced_by
-    return dictionary
 
 
 # Main entry point for program
