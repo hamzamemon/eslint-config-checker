@@ -36,7 +36,6 @@ def parse(data, soup):
     tables = soup.find_all("table")
     for table in tables:
 
-        print(table)
         # Get the associated header for said table
         header = table.find_previous_sibling("h2")
         if not header:
@@ -65,10 +64,6 @@ def parse(data, soup):
 
     removed_dict = dictionaries["Removed"]
     compare_rules_to_deprecated_and_removed(rules, removed_dict)
-
-    # Get ECMAScript 6 if it's set in the env object
-    if "es6" in env and env["es6"]:
-        ecmaScript_table = soup.find("h2", text="ECMAScript 6").find_next("table")
 
     # Check if we should check if recommended rules are in the config
     if "eslint:recommended" in extends:
